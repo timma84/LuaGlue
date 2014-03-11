@@ -87,8 +87,19 @@ template<typename _Class, typename... _Args>
 class LuaGlueMethod<void, _Class, _Args...> : public LuaGlueMethodBase
 {
 	private:
-		template <typename... T>
- 		using tuple = std::tuple<typename std::remove_const<typename std::remove_reference<T>::type>::type...>;
+		// Workaround for gcc 4.7 problem:
+		// http://stackoverflow.com/questions/16786030/parameter-pack-confusion
+		template <typename... Args>
+		struct scrubbed_args {
+			using type = std::tuple<
+				typename std::remove_const<
+					typename std::remove_reference<Args>::type
+				>::type...
+			>;
+		};
+
+		template <typename... Args>
+		using tuple = typename scrubbed_args<Args...>::type;
 
 	public:
 		typedef _Class ClassType;
